@@ -1,0 +1,30 @@
+{
+  "name": "feathers-opentelemetry-demo",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": ["opentelemetry", "feathersjs"],
+  "author": "deskoh",
+  "license": "ISC",
+  "dependencies": {
+    "@feathersjs/express": "^4.5.11",
+    "@feathersjs/feathers": "^4.5.11",
+    "@feathersjs/socketio": "^4.5.11",
+    "@opentelemetry/api": "^0.18.1",
+    "@opentelemetry/core": "^0.18.2",
+    "@opentelemetry/exporter-zipkin": "^0.18.2",
+    "@opentelemetry/instrumentation": "^0.18.2",
+    "@opentelemetry/instrumentation-express": "^0.15.0",
+    "@opentelemetry/instrumentation-http": "^0.18.2",
+    "@opentelemetry/node": "^0.18.2",
+    "@opentelemetry/semantic-conventions": "^0.18.2",
+    "@opentelemetry/tracing": "^0.18.2"
+  },
+  "devDependencies": {
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  }
+}
