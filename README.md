@@ -1,6 +1,6 @@
 # FeathersJS OpenTelemetry Demo
 
-> Works for Feathers v4 (Crow)
+> Works for Feathers v5 (Dove)
 
 ## Quickstart
 

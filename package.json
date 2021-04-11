@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "ts-node src/index.ts"
   },
-  "keywords": ["opentelemetry", "feathersjs"],
+  "keywords": [
+    "opentelemetry",
+    "feathersjs"
+  ],
   "author": "deskoh",
   "license": "ISC",
   "dependencies": {
-    "@feathersjs/express": "^4.5.11",
-    "@feathersjs/feathers": "^4.5.11",
-    "@feathersjs/socketio": "^4.5.11",
+    "@feathersjs/express": "^5.0.0-pre.2",
+    "@feathersjs/feathers": "^5.0.0-pre.2",
+    "@feathersjs/socketio": "^5.0.0-pre.2",
     "@opentelemetry/api": "^0.18.1",
     "@opentelemetry/core": "^0.18.2",
     "@opentelemetry/exporter-zipkin": "^0.18.2",

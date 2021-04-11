@@ -1,21 +1,16 @@
-import { diag, Span } from '@opentelemetry/api';
+import { diag, setSpan, context as traceContext, getSpan } from '@opentelemetry/api';
 import {
   InstrumentationBase,
   InstrumentationConfig,
   InstrumentationNodeModuleDefinition,
 } from '@opentelemetry/instrumentation';
-import * as commons from '@feathersjs/commons';
-import { HookContext } from "@feathersjs/feathers";
+import * as feathers from '@feathersjs/feathers/lib/hooks/legacy';
+import { collectLegacyHooks } from '@feathersjs/feathers/lib/hooks/legacy';
+import { Middleware } from '@feathersjs/hooks';
 
 import { getHooksAttributes } from './utils';
 
 const VERSION = '0.0.1';
-
-declare module "@feathersjs/feathers" {
-  interface HookContext<T = any, S = Service<T>> {
-    span?: Span;
-  }
-}
 
 export class FeathersInstrumentation extends InstrumentationBase {
   constructor(config: InstrumentationConfig = {}) {
@@ -23,65 +18,63 @@ export class FeathersInstrumentation extends InstrumentationBase {
   }
 
   protected init() {
-    const module = new InstrumentationNodeModuleDefinition<typeof commons>(
-      '@feathersjs/commons',
-      ['4.*'],
-       this._onPatchMain.bind(this),
-       this._onUnPatchMain.bind(this),
+    const module = new InstrumentationNodeModuleDefinition<typeof feathers>(
+      '@feathersjs/feathers/lib/hooks/legacy',
+      ['5.0.0-pre.2'],
+      this._onPatchFeathers.bind(this),
+      this._onUnPatchFeathers.bind(this),
     );
 
     return module;
   }
 
-  private _onPatchMain(moduleExports: typeof commons) {
-    diag.debug(`Applying patch for @feathersjs/commons`);
+  private _onPatchFeathers(moduleExports: typeof feathers) {
+    diag.debug(`Applying patch for @feathersjs/feathers`);
     this._wrap(
-      moduleExports.hooks,
-      'processHooks',
-      this._patchMainMethodName(),
+      moduleExports,
+      'collectLegacyHooks',
+      this._patchCollectLegacyHooks(),
     );
     return moduleExports;
   }
 
-  private _onUnPatchMain(moduleExports: typeof commons) {
-    diag.debug(`Removing patch for @feathersjs/commons`);
-    this._unwrap(moduleExports.hooks, 'processHooks');
+  private _onUnPatchFeathers(moduleExports: typeof feathers) {
+    diag.debug(`Removing patch for @feathersjs/feathers`);
+    this._unwrap(moduleExports, 'collectLegacyHooks');
   }
 
-  // Reference: packages/commons/src/hooks.ts@processHooks
-  private _patchMainMethodName(): (original: any) => any {
+  // Reference: feathers\src\hooks\legacy.ts
+  private _patchCollectLegacyHooks(): (original: typeof collectLegacyHooks) => any {
     const plugin = this;
-    return function mainMethodName(original) {
-      return function patchMainMethodName(this: any, ...args: any): any {
+    return function collectLegacyHooks(original) {
+      const appTraceMiddleware: Middleware = async (context, next) => {
+        const { path, method } = context;
+        const span = plugin.tracer.startSpan(`${path} ${method}`, {
+          attributes: getHooksAttributes(context),
+        });
+        await traceContext.with(setSpan(traceContext.active(), span), () => next());
+        span.end();
+      };
 
-        const [originalHooks, hookObject]: [any[], HookContext] = args;
-        if (hookObject.type === 'before') {
-          const span = plugin.tracer.startSpan(`${hookObject.path} ${hookObject.method}`);
-          hookObject.span = span;
-          // propagation.extract(context.active(), hookObject.params?.headers);
-          return original.apply(this, args).then((hookObject: any) => {
-            span.addEvent(`before hooks completed`);
-            return hookObject;
-          });
-        } else if (hookObject.type === 'after') {
-          // Determine after or finally hooks
-          if (!(hookObject as any)._spanAfterCompleted) {
-            // hookObject.params only available after method completes.
-            hookObject.span?.setAttributes(getHooksAttributes(hookObject));
-            return original.apply(this, args).then((hookObject: any) => {
-              hookObject.span.addEvent(`after hooks completed`);
-              hookObject._spanAfterCompleted = true;
-              return hookObject;
-            });
-          } else {
-            return original.apply(this, args).then((hookObject: any) => {
-              hookObject.span.end();
-              return hookObject;
-            });
-          }
-        }
+      const appMiddleware: Middleware = async (context, next) => {
+        const span = getSpan(traceContext.active());
+        span?.addEvent(`completed app before hooks`);
+        await next();
+        span?.addEvent(`calling app after hooks`);
+      };
+      const serviceMiddleware: Middleware = async (context, next) => {
+        const span = getSpan(traceContext.active());
+        span?.addEvent(`completed service before hooks`);
+        await next();
+        span?.addEvent(`calling service after hooks`);
+      };
+      return function patchCollectLegacyHooks(this: any, ...args: any) {
+        const legacyHooks = original.apply(this, args);
 
-        return original.apply(this, args);
+        const isCollectingAppHooks = (args[0].constructor.name === 'EventEmitter');
+        return isCollectingAppHooks ?
+          [appTraceMiddleware, ...legacyHooks, appMiddleware] :
+          [...legacyHooks, serviceMiddleware];
       };
     };
   }

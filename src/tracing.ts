@@ -10,7 +10,7 @@ import { FeathersInstrumentation } from './instrumentation-feathers';
 
 const provider = new NodeTracerProvider();
 
-// diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 provider.register();
 
 registerInstrumentations({

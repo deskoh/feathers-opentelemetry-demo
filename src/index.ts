@@ -2,7 +2,7 @@ import './tracing';
 import app from './app';
 
 // Start the server
-app.listen(3030).on('listening', () =>
+app.listen(3030).then(() =>
   console.log('Feathers server listening on localhost:3030')
 );
 

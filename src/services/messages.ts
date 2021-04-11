@@ -1,10 +1,9 @@
 import { Application } from "@feathersjs/express";
-import { HookContext } from "@feathersjs/feathers";
 
 import hooks from './messages.hook';
 
 // This is the interface for the message data
-interface Message {
+export interface Message {
   id: number;
   text: string;
 }
@@ -14,7 +13,12 @@ interface Message {
 class MessageService {
   messages: Message[] = [];
 
+  constructor(private app: Application) {
+  }
+
   async find () {
+    // Trigger child trace
+    this.app.service('users').find();
     // Just return all our messages
     return this.messages;
   }
@@ -35,7 +39,7 @@ class MessageService {
 }
 
 export default () => (app: Application) => {
-  app.use('messages', new MessageService());
+  app.use('messages', new MessageService(app));
 
   app.service('messages').hooks(hooks);
 }
