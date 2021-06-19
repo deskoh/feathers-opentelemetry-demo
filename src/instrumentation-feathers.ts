@@ -1,4 +1,4 @@
-import { diag, setSpan, context as traceContext, getSpan } from '@opentelemetry/api';
+import { diag, context as traceContext, trace } from '@opentelemetry/api';
 import {
   InstrumentationBase,
   InstrumentationConfig,
@@ -52,18 +52,18 @@ export class FeathersInstrumentation extends InstrumentationBase {
         const span = plugin.tracer.startSpan(`${path} ${method}`, {
           attributes: getHooksAttributes(context),
         });
-        await traceContext.with(setSpan(traceContext.active(), span), () => next());
+        await traceContext.with(trace.setSpan(traceContext.active(), span), () => next());
         span.end();
       };
 
       const appMiddleware: Middleware = async (context, next) => {
-        const span = getSpan(traceContext.active());
+        const span = trace.getSpan(traceContext.active());
         span?.addEvent(`completed app before hooks`);
         await next();
         span?.addEvent(`calling app after hooks`);
       };
       const serviceMiddleware: Middleware = async (context, next) => {
-        const span = getSpan(traceContext.active());
+        const span = trace.getSpan(traceContext.active());
         span?.addEvent(`completed service before hooks`);
         await next();
         span?.addEvent(`calling service after hooks`);

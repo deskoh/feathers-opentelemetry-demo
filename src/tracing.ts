@@ -1,14 +1,20 @@
 import { NodeTracerProvider } from '@opentelemetry/node';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { SimpleSpanProcessor } from '@opentelemetry/tracing';
-import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
+import { ExporterConfig, ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
+import { Resource } from '@opentelemetry/resources';
+import { ResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { FeathersInstrumentation } from './instrumentation-feathers';
 
-const provider = new NodeTracerProvider();
+const provider = new NodeTracerProvider({
+  resource: new Resource({
+    [ResourceAttributes.SERVICE_NAME]: 'feathers-app',
+  }),
+});
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 provider.register();
@@ -23,9 +29,9 @@ registerInstrumentations({
 });
 
 // Initialize the exporter.
-const zipkinOptions = {
-  serviceName: 'feathers-app',
-}
+const zipkinOptions: ExporterConfig = {
+  serviceName: 'des',
+};
 
 /**
  *
