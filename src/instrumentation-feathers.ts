@@ -20,7 +20,7 @@ export class FeathersInstrumentation extends InstrumentationBase {
   protected init() {
     const module = new InstrumentationNodeModuleDefinition<typeof feathers>(
       '@feathersjs/feathers/lib/hooks/legacy',
-      ['5.0.0-pre.2'],
+      ['5.0.0-pre.4'],
       this._onPatchFeathers.bind(this),
       this._onUnPatchFeathers.bind(this),
     );

@@ -13,9 +13,9 @@
   "author": "deskoh",
   "license": "ISC",
   "dependencies": {
-    "@feathersjs/express": "^5.0.0-pre.2",
-    "@feathersjs/feathers": "^5.0.0-pre.2",
-    "@feathersjs/socketio": "^5.0.0-pre.2",
+    "@feathersjs/express": "5.0.0-pre.4",
+    "@feathersjs/feathers": "5.0.0-pre.4",
+    "@feathersjs/socketio": "5.0.0-pre.4",
     "@opentelemetry/api": "^1.0.0",
     "@opentelemetry/core": "0.21.0",
     "@opentelemetry/exporter-zipkin": "^0.21.0",
