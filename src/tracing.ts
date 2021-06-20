@@ -23,7 +23,7 @@ registerInstrumentations({
   instrumentations: [
     new HttpInstrumentation(),
     new ExpressInstrumentation(),
-    new FeathersInstrumentation(),
+    // new FeathersInstrumentation(),
   ],
   tracerProvider: provider,
 });

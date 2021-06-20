@@ -5,6 +5,7 @@ import socketio from '@feathersjs/socketio';
 
 import MessageService from './services/messages';
 import UserService from './services/users';
+import opentelemetry from './opentelemetry';
 
 // Creates an ExpressJS compatible Feathers application
 const app = express.default(feathers());
@@ -17,6 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 app.configure(express.rest());
 // Configure Socket.io real-time APIs
 app.configure(socketio());
+
+// Configure opentelemetry
+app.configure(opentelemetry());
 
 // Register our services
 app.configure(MessageService());
